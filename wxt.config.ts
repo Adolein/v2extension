@@ -4,4 +4,12 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
   extensionApi: 'chrome',
   modules: ['@wxt-dev/module-vue'],
+  manifest: {
+    web_accessible_resources: [
+      {
+        resources: ["injected.js"],
+        matches: ["*://*/*"],
+      },
+    ],
+  },
 });
