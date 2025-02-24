@@ -7,7 +7,7 @@ export default defineConfig({
   manifest: {
     web_accessible_resources: [
       {
-        resources: ["injected.js"],
+        resources: ["injected.js","searchfield.js","suggestion.js"],
         matches: ["*://*/*"],
       },
     ],

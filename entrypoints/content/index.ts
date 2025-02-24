@@ -22,15 +22,24 @@ export default defineContentScript({
         });
 
 
-        ////////////////
-        // Vanilla JS Method
-        ////
+        
         console.log('Hello content.');
         console.log("Injecting script...");
         await injectScript("/injected.js", {
             keepInDom: true,
         });
+        await injectScript("/searchfield.js", {
+            keepInDom: true,
+        });
+        await injectScript("/suggestion.js", {
+            keepInDom: true,
+        });
         console.log("Done!");
+
+
+        ////////////////
+        // Vanilla JS Method
+        ////
         const newDiv = document.createElement("div");
         newDiv.id = "my-wxt-div";
         newDiv.style.position = "fixed";
