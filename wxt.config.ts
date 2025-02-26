@@ -11,5 +11,6 @@ export default defineConfig({
         matches: ["*://*/*"],
       },
     ],
+    permissions: ['activeTab', 'scripting'],
   },
 });
