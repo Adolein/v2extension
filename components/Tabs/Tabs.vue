@@ -30,7 +30,7 @@ import { ref } from 'vue';
 import Suggestions from './suggestions.vue';
 
 const tabs = ['Home','Suggestions','Settings',];
-const activeTab = ref(tabs[0]);
+const activeTab = ref(tabs[1]);
 
 const setActiveTab = (tab: string) => {
   activeTab.value = tab;

@@ -11,10 +11,39 @@ export default defineContentScript({
     cssInjectionMode: "ui",
 
     async main(ctx) {
+        window.addEventListener('message', async (event) => {
+            if (event.source !== window || event.data.type !== 'SEARCH_KEYWORDS') {
+                return;
+            }
+            console.log('Watcher 2')
+
+            const keywords = event.data.keywords;
+            const results = [];
+
+            for (const keyword of keywords) {
+                const searchField = document.getElementById("twotabsearchtextbox") as HTMLInputElement;
+
+                if (searchField) {
+                    searchField.value = keyword;
+                    searchField.dispatchEvent(new Event('input', { bubbles: true }));
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+
+                    const suggestionElements = document.querySelectorAll('.s-suggestion');
+                    const suggestionTexts = Array.from(suggestionElements).map(el => el.textContent?.trim() || '');
+
+                    results.push({ keyword, suggestions: suggestionTexts });
+
+                    // Nachricht an Popup
+                    chrome.runtime.sendMessage({ type: 'SUGGESTIONS', keyword, suggestions: suggestionTexts });
+                }
+            }
+        });
+
+
         const ui = await defineOverlay(ctx);
 
         // Mount initially
-        ui.mount();
+        //ui.mount();
 
         // Re-mount when page changes
         ctx.addEventListener(window, "wxt:locationchange", (event) => {
@@ -22,8 +51,8 @@ export default defineContentScript({
         });
 
 
-        
-        console.log('Hello content.');
+
+        /* console.log('Hello content.');
         console.log("Injecting script...");
         await injectScript("/injected.js", {
             keepInDom: true,
@@ -34,13 +63,13 @@ export default defineContentScript({
         await injectScript("/suggestion.js", {
             keepInDom: true,
         });
-        console.log("Done!");
+        console.log("Done!"); */
 
 
         ////////////////
         // Vanilla JS Method
         ////
-        const newDiv = document.createElement("div");
+        /* const newDiv = document.createElement("div");
         newDiv.id = "my-wxt-div";
         newDiv.style.position = "fixed";
         newDiv.style.bottom = "10px";
@@ -50,11 +79,10 @@ export default defineContentScript({
         newDiv.style.padding = "10px";
         newDiv.style.borderRadius = "5px";
         newDiv.innerText = "Vanilla JS implementiert";
-        document.body.appendChild(newDiv);
-
-        
+        document.body.appendChild(newDiv); */
 
     },
+
 });
 
 function defineOverlay(ctx: ContentScriptContext) {
