@@ -17,10 +17,12 @@
     </div>
 
     <!-- Tab Content -->
-    <div class="p-4 bg-white shadow-md rounded-b-lg">
+    <div class="p-4 bg-white ">
       <div v-if="activeTab === 'Home'">Home</div>
       <div v-if="activeTab === 'Suggestions'"><Suggestions/></div>
       <div v-if="activeTab === 'Settings'">⚙️ Einstellungen ändern.</div>
+      <div v-if="activeTab === 'Profile'"> Profile</div>
+
     </div>
   </div>
 </template>
@@ -29,7 +31,7 @@
 import { ref } from 'vue';
 import Suggestions from './suggestions.vue';
 
-const tabs = ['Home','Suggestions','Settings',];
+const tabs = ['Home','Suggestions','Settings','Profile'];
 const activeTab = ref(tabs[1]);
 
 const setActiveTab = (tab: string) => {
