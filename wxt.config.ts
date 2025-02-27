@@ -7,10 +7,16 @@ export default defineConfig({
   manifest: {
     web_accessible_resources: [
       {
-        resources: ["injected.js","searchfield.js","suggestion.js"],
+        resources: ["injected.js", "searchfield.js", "suggestion.js"],
         matches: ["*://*/*"],
       },
     ],
-    permissions: ['activeTab', 'scripting'],
+    permissions: ['activeTab', 'scripting', 'tabs'],
+    background: {
+      service_worker: 'background.ts',
+    },
+    action: {
+      default_popup: 'index.html',
+    },
   },
 });
