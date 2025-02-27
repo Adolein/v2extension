@@ -4,87 +4,52 @@ import { createApp } from "vue";
 import "./reset.css";
 
 export default defineContentScript({
-
-    //matches: ['*://*.google.com/*'],
     matches: ['*://*.amazon.de/*'],
-    //https://www.amazon.de/dp/B01JLGWGEQ
     cssInjectionMode: "ui",
 
     async main(ctx) {
-        window.addEventListener('message', async (event) => {
-            if (event.source !== window || event.data.type !== 'SEARCH_KEYWORDS') {
-                return;
-            }
-            console.log('Watcher 2')
-
-            const keywords = event.data.keywords;
-            const results = [];
-
-            for (const keyword of keywords) {
-                const searchField = document.getElementById("twotabsearchtextbox") as HTMLInputElement;
-
-                if (searchField) {
-                    searchField.value = keyword;
-                    searchField.dispatchEvent(new Event('input', { bubbles: true }));
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-
-                    const suggestionElements = document.querySelectorAll('.s-suggestion');
-                    const suggestionTexts = Array.from(suggestionElements).map(el => el.textContent?.trim() || '');
-
-                    results.push({ keyword, suggestions: suggestionTexts });
-
-                    // Nachricht an Popup
-                    chrome.runtime.sendMessage({ type: 'SUGGESTIONS', keyword, suggestions: suggestionTexts });
-                }
-            }
-        });
-
+        // 🔥 Falls der Listener bereits existiert, zuerst entfernen!
+        window.removeEventListener('message', handleMessage);
+        window.addEventListener('message', handleMessage);
 
         const ui = await defineOverlay(ctx);
 
-        // Mount initially
-        //ui.mount();
-
-        // Re-mount when page changes
-        ctx.addEventListener(window, "wxt:locationchange", (event) => {
+        // Re-mount wenn sich die Seite ändert
+        ctx.addEventListener(window, "wxt:locationchange", () => {
             ui.mount();
         });
-
-
-
-        /* console.log('Hello content.');
-        console.log("Injecting script...");
-        await injectScript("/injected.js", {
-            keepInDom: true,
-        });
-        await injectScript("/searchfield.js", {
-            keepInDom: true,
-        });
-        await injectScript("/suggestion.js", {
-            keepInDom: true,
-        });
-        console.log("Done!"); */
-
-
-        ////////////////
-        // Vanilla JS Method
-        ////
-        /* const newDiv = document.createElement("div");
-        newDiv.id = "my-wxt-div";
-        newDiv.style.position = "fixed";
-        newDiv.style.bottom = "10px";
-        newDiv.style.right = "10px";
-        newDiv.style.backgroundColor = "rgba(0,0,0,0.7)";
-        newDiv.style.color = "white";
-        newDiv.style.padding = "10px";
-        newDiv.style.borderRadius = "5px";
-        newDiv.innerText = "Vanilla JS implementiert";
-        document.body.appendChild(newDiv); */
-
-    },
-
+    }
 });
 
+// 🔹 **Funktion für Nachrichtenevent**
+function handleMessage(event: MessageEvent) {
+    if (event.source !== window || event.data.type !== 'SEARCH_KEYWORDS') return;
+
+    console.log('Empfange Keywords:', event.data.keywords);
+    const keywords = event.data.keywords;
+    const results: { keyword: string; suggestions: string[] }[] = [];
+
+    const searchField = document.getElementById("twotabsearchtextbox") as HTMLInputElement;
+    if (!searchField) return;
+
+    (async () => {
+        for (const keyword of keywords) {
+            searchField.value = keyword;
+            searchField.dispatchEvent(new Event('input', { bubbles: true }));
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            const suggestionElements = document.querySelectorAll('.s-suggestion');
+            const suggestionTexts = Array.from(suggestionElements).map(el => el.textContent?.trim() || '');
+
+            results.push({ keyword, suggestions: suggestionTexts });
+
+            // 🔥 Nachricht an Background-Skript statt direkt ans Popup!
+            chrome.runtime.sendMessage({ type: 'SUGGESTIONS', keyword, suggestions: suggestionTexts });
+        }
+    })();
+}
+
+// 🔹 **Shadow-Root für Vue UI**
 function defineOverlay(ctx: ContentScriptContext) {
     return createShadowRootUi(ctx, {
         name: "vue-overlay",

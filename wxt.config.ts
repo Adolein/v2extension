@@ -11,6 +11,7 @@ export default defineConfig({
         matches: ["*://*/*"],
       },
     ],
+    host_permissions: ["*://*.amazon.de/*"],
     permissions: ['activeTab', 'scripting', 'tabs'],
     background: {
       service_worker: 'background.ts',

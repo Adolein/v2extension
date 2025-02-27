@@ -16,18 +16,28 @@
         Erstellen</button>
     <button v-if="suggestions.length" @click="downloadCSV" class="bg-green-600 text-white p-2">CSV-Datei
         Herunterladen</button>
-
 </template>
-<script setup lang="ts">
-import "~/assets/tailwind.css";
 
-const keywords = ref('');
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+
+const keywords = ref('drucker');
 const suggestions = ref<{ keyword: string; results: string[] }[]>([]);
 
+// Nachrichten vom Background-Skript empfangen
+onMounted(() => {
+    chrome.runtime.onMessage.addListener((message) => {
+        if (message.type === 'SUGGESTIONS_UPDATE') {
+            suggestions.value.push({ keyword: message.keyword, results: message.suggestions });
+        }
+    });
+});
 
+// CSV-Datei erstellen und herunterladen
 const createCSVFile = () => {
     const keywordList = keywords.value.split('\n').map(k => k.trim()).filter(k => k);
     suggestions.value = [];
+
     // Nachricht an Content Script senden
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs[0]?.id) {
@@ -40,28 +50,15 @@ const createCSVFile = () => {
             });
         }
     });
-
-    // Warte auf Antwort mit Suchvorschlägen
-    chrome.runtime.onMessage.addListener((message) => {
-        if (message.type === 'SUGGESTIONS') {
-            suggestions.value.push({ keyword: message.keyword, results: message.suggestions });
-        }
-    });
 };
 
-// CSV herunterladen
 const downloadCSV = () => {
-
     let csvContent = 'data:text/csv;charset=utf-8,';
     csvContent += 'Keyword;Suggestions\n';
 
     suggestions.value.forEach(({ keyword, results }) => {
         const escapedKeyword = `"${keyword.replace(/"/g, '""')}"`;
-
-        const escapedResults = results
-            .map(result => `"${result.replace(/"/g, '""')}"`)
-            .join(';');
-
+        const escapedResults = results.map(result => `"${result.replace(/"/g, '""')}"`).join(';');
         csvContent += `${escapedKeyword};${escapedResults}\n`;
     });
 
@@ -72,5 +69,4 @@ const downloadCSV = () => {
     document.body.appendChild(link);
     link.click();
 };
-
 </script>
