@@ -1,8 +1,8 @@
 <template>
-  <div class="mt-4 w-full max-w-4xl mx-auto my-4 bg-red-50 shadow-lg rounded-lg overflow-hidden">
+  <div class="mt-4 w-full max-w-4xl mx-auto my-4  shadow-lg rounded-lg overflow-hidden">
     <table class="w-full border-collapse">
       <thead>
-        <tr class="bg-blue-600 text-white text-left">
+        <tr class="bg-indigo-600 text-white text-left">
           <th class="p-3">Artikelname</th>
           <th class="p-3">Preis</th>
           <th class="p-3">Rabatt</th>

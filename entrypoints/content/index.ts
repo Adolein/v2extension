@@ -2,7 +2,7 @@ import { ContentScriptContext } from "wxt/client";
 import App from "./App.vue";
 import { createApp } from "vue";
 import "./reset.css";
-import ProductTable from '../../components/ProductTable.vue';
+import ProductTable from "@/components/productTable.vue";
 
 
 export default defineContentScript({
@@ -13,8 +13,21 @@ export default defineContentScript({
 
     async main(ctx) {
 
-        insertProductTable()
+        //insertProductTable()
         window.addEventListener('message', searchSuggestions);
+
+        //ProductTable
+        
+        const ui = await defineProductTable(ctx);
+        
+        // Mount initially
+        ui.mount();
+
+        // Re-mount when page changes
+        ctx.addEventListener(window, "wxt:locationchange", (event) => {
+            ui.mount();
+        });
+
 
 
         //Overlay
@@ -118,7 +131,7 @@ function extractProductData() {
     };
 }
 
-function insertProductTable() {
+/* function insertProductTable() {
     const targetElement = document.querySelector('#centerCol');
     if (!targetElement) return;
 
@@ -132,6 +145,23 @@ function insertProductTable() {
     // Vue App erstellen
     const app = createApp(ProductTable, { products: [extractProductData()] });
     app.mount(container);
+} */
+
+function defineProductTable(ctx: ContentScriptContext) {
+    return createShadowRootUi(ctx, {
+        name: "product-table",
+        position: "inline",
+        append:"after",
+        anchor: "#centerCol",
+        onMount(container) {
+            const app = createApp(ProductTable, { products: [extractProductData()] });
+    app.mount(container);
+            return app;
+        },
+        onRemove(app) {
+            app?.unmount();
+        },
+    });
 }
 
 
