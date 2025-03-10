@@ -17,9 +17,9 @@ export default defineContentScript({
         window.addEventListener('message', searchSuggestions);
 
         //ProductTable
-        
+
         const ui = await defineProductTable(ctx);
-        
+
         // Mount initially
         ui.mount();
 
@@ -124,11 +124,13 @@ function extractProductData() {
 
     if (!titleElement || !priceElement) return null;
 
-    return {
+    const product = {
         name: titleElement.textContent?.trim() || 'Kein Titel gefunden',
         price: priceElement.textContent?.trim() || 'Preis nicht verfügbar',
         discount: discountElement?.textContent?.trim() || '—'
     };
+    saveProductToHistory(product);
+    return product
 }
 
 /* function insertProductTable() {
@@ -151,11 +153,13 @@ function defineProductTable(ctx: ContentScriptContext) {
     return createShadowRootUi(ctx, {
         name: "product-table",
         position: "inline",
-        append:"after",
+        append: "after",
         anchor: "#ppd",
         onMount(container) {
             const app = createApp(ProductTable, { products: [extractProductData()] });
-    app.mount(container);
+            app.mount(container);
+            // Produkt-Historie laden, nachdem die Tabelle gerendert wurde
+
             return app;
         },
         onRemove(app) {
@@ -164,5 +168,27 @@ function defineProductTable(ctx: ContentScriptContext) {
     });
 }
 
+// Automatisch speichern, wenn Seite geladen wird
+const product = extractProductData();
+saveProductToHistory(product);
+
+async function saveProductToHistory(product: { name: string; price: string; discount: string } | null) {
+    // Aktuelle Historie aus dem Speicher holen
+    chrome.storage.local.get("productHistory", (data) => {
+        let history = data.productHistory || [];
+
+        // Neues Produkt zur Historie hinzufügen
+        history.unshift(product);
+
+        // Aktualisierte Historie speichern
+        chrome.storage.local.set({ productHistory: history });
+    });
+}
+
+async function loadProductHistory(callback: (history: any[]) => void) {
+    chrome.storage.local.get("productHistory", (data) => {
+        callback(data.productHistory || []);
+    });
+}
 
 
