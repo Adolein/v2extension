@@ -152,7 +152,7 @@ function defineProductTable(ctx: ContentScriptContext) {
         name: "product-table",
         position: "inline",
         append:"after",
-        anchor: "#centerCol",
+        anchor: "#ppd",
         onMount(container) {
             const app = createApp(ProductTable, { products: [extractProductData()] });
     app.mount(container);

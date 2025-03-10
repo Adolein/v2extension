@@ -1,11 +1,13 @@
 <template>
-  <div class="mt-4 w-full max-w-4xl mx-auto my-4  shadow-lg rounded-lg overflow-hidden">
+  <div class="mt-4 w-full mx-auto my-4  shadow-lg rounded-lg overflow-hidden">
     <table class="w-full border-collapse">
       <thead>
         <tr class="bg-indigo-600 text-white text-left">
           <th class="p-3">Artikelname</th>
           <th class="p-3">Preis</th>
           <th class="p-3">Rabatt</th>
+          <th class="p-3">Popup</th>
+
         </tr>
       </thead>
       <tbody>
@@ -13,6 +15,12 @@
           <td class="p-3">{{ product.name }}</td>
           <td class="p-3 font-semibold text-green-600">{{ product.price }}</td>
           <td class="p-3 text-red-500">{{ product.discount || '—' }}</td>
+          <td class="p-3" @click="openPopup">
+            <button class="hover:cursor-pointer">
+              📌
+            </button>
+          </td>
+
         </tr>
       </tbody>
     </table>
@@ -23,4 +31,8 @@
 import "~/assets/tailwind.css";
 
 defineProps<{ products: { name: string; price: string; discount?: string }[] }>();
+
+function openPopup() {
+  chrome.runtime.sendMessage({ action: "open_popup" });
+}
 </script>
