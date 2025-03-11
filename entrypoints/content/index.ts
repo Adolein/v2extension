@@ -156,7 +156,7 @@ function defineProductTable(ctx: ContentScriptContext) {
         append: "after",
         anchor: "#ppd",
         onMount(container) {
-            const app = createApp(ProductTable, { products: [extractProductData()] });
+            const app = createApp(ProductTable);
             app.mount(container);
             // Produkt-Historie laden, nachdem die Tabelle gerendert wurde
 
@@ -173,9 +173,16 @@ const product = extractProductData();
 saveProductToHistory(product);
 
 async function saveProductToHistory(product: { name: string; price: string; discount: string } | null) {
+    if (!product) return;
+    if (!product.name) return;
+
     // Aktuelle Historie aus dem Speicher holen
     chrome.storage.local.get("productHistory", (data) => {
         let history = data.productHistory || [];
+
+        // Prüfen, ob das Produkt bereits existiert
+        const exists = history.some((p: { name: string }) => p.name === product.name);
+        if (exists) return; // Falls schon drin, nicht erneut speichern
 
         // Neues Produkt zur Historie hinzufügen
         history.unshift(product);
