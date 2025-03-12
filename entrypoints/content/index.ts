@@ -19,14 +19,16 @@ export default defineContentScript({
         //ProductTable
 
         const ui = await defineProductTable(ctx);
-
-        // Mount initially
-        ui.mount();
-
-        // Re-mount when page changes
-        ctx.addEventListener(window, "wxt:locationchange", (event) => {
+        if (ui) {
+            // Mount initially
             ui.mount();
-        });
+
+            // Re-mount when page changes
+            ctx.addEventListener(window, "wxt:locationchange", (event) => {
+                ui.mount();
+            });
+        }
+
 
 
 
@@ -150,6 +152,8 @@ function extractProductData() {
 } */
 
 function defineProductTable(ctx: ContentScriptContext) {
+    const anchorElement = document.querySelector("#ppd");
+    if (!anchorElement) return;
     return createShadowRootUi(ctx, {
         name: "product-table",
         position: "inline",
@@ -168,7 +172,7 @@ function defineProductTable(ctx: ContentScriptContext) {
     });
 }
 
-// Automatisch speichern, wenn Seite geladen wird
+
 const product = extractProductData();
 saveProductToHistory(product);
 
@@ -176,18 +180,14 @@ async function saveProductToHistory(product: { name: string; price: string; disc
     if (!product) return;
     if (!product.name) return;
 
-    // Aktuelle Historie aus dem Speicher holen
     chrome.storage.local.get("productHistory", (data) => {
         let history = data.productHistory || [];
 
-        // Prüfen, ob das Produkt bereits existiert
         const exists = history.some((p: { name: string }) => p.name === product.name);
-        if (exists) return; // Falls schon drin, nicht erneut speichern
+        if (exists) return;
 
-        // Neues Produkt zur Historie hinzufügen
         history.unshift(product);
 
-        // Aktualisierte Historie speichern
         chrome.storage.local.set({ productHistory: history });
     });
 }
