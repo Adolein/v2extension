@@ -17,16 +17,18 @@ export default defineContentScript({
         window.addEventListener('message', searchSuggestions);
 
         //ProductTable
-        
-        const ui = await defineProductTable(ctx);
-        
-        // Mount initially
-        ui.mount();
 
-        // Re-mount when page changes
-        ctx.addEventListener(window, "wxt:locationchange", (event) => {
+        const ui = await defineProductTable(ctx);
+        if (ui) {
+            // Mount initially
             ui.mount();
-        });
+
+            // Re-mount when page changes
+            ctx.addEventListener(window, "wxt:locationchange", (event) => {
+                ui.mount();
+            });
+        }
+
 
 
 
@@ -124,11 +126,13 @@ function extractProductData() {
 
     if (!titleElement || !priceElement) return null;
 
-    return {
+    const product = {
         name: titleElement.textContent?.trim() || 'Kein Titel gefunden',
         price: priceElement.textContent?.trim() || 'Preis nicht verfügbar',
         discount: discountElement?.textContent?.trim() || '—'
     };
+    saveProductToHistory(product);
+    return product
 }
 
 /* function insertProductTable() {
@@ -148,14 +152,17 @@ function extractProductData() {
 } */
 
 function defineProductTable(ctx: ContentScriptContext) {
+    const anchorElement = document.querySelector("#ppd");
+    if (!anchorElement) return;
     return createShadowRootUi(ctx, {
         name: "product-table",
         position: "inline",
-        append:"after",
+        append: "after",
         anchor: "#ppd",
         onMount(container) {
-            const app = createApp(ProductTable, { products: [extractProductData()] });
-    app.mount(container);
+            const app = createApp(ProductTable);
+            app.mount(container);
+
             return app;
         },
         onRemove(app) {
@@ -164,5 +171,30 @@ function defineProductTable(ctx: ContentScriptContext) {
     });
 }
 
+
+const product = extractProductData();
+saveProductToHistory(product);
+
+async function saveProductToHistory(product: { name: string; price: string; discount: string } | null) {
+    if (!product) return;
+    if (!product.name) return;
+
+    chrome.storage.local.get("productHistory", (data) => {
+        let history = data.productHistory || [];
+
+        const exists = history.some((p: { name: string }) => p.name === product.name);
+        if (exists) return;
+
+        history.unshift(product);
+
+        chrome.storage.local.set({ productHistory: history });
+    });
+}
+
+async function loadProductHistory(callback: (history: any[]) => void) {
+    chrome.storage.local.get("productHistory", (data) => {
+        callback(data.productHistory || []);
+    });
+}
 
 

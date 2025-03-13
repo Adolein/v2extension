@@ -3,6 +3,7 @@
     <table class="w-full border-collapse">
       <thead>
         <tr class="bg-indigo-600 text-white text-left">
+          <th class=""></th>
           <th class="p-3">Artikelname</th>
           <th class="p-3">Preis</th>
           <th class="p-3">Rabatt</th>
@@ -11,16 +12,16 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(product, index) in products" :key="index" class="border-b hover:bg-gray-100 transition">
-          <td class="p-3">{{ product.name }}</td>
-          <td class="p-3 font-semibold text-green-600">{{ product.price }}</td>
-          <td class="p-3 text-red-500">{{ product.discount || '—' }}</td>
+        <tr v-for="(product, index) in productHistory" :key="index" class="border-b hover:bg-gray-100 transition">
+          <td class="p-1">{{ index + 1 }}</td>
+          <td class="p-3">{{ product?.name }}</td>
+          <td class="p-3 font-semibold text-green-600">{{ product?.price }}</td>
+          <td class="p-3 text-red-500">{{ product?.discount || '—' }}</td>
           <td class="p-3" @click="openPopup">
             <button class="hover:cursor-pointer">
               📌
             </button>
           </td>
-
         </tr>
       </tbody>
     </table>
@@ -30,9 +31,38 @@
 <script setup lang="ts">
 import "~/assets/tailwind.css";
 
-defineProps<{ products: { name: string; price: string; discount?: string }[] }>();
+//defineProps<{ products: { name: string; price: string; discount?: string }[] }>();
 
 function openPopup() {
   chrome.runtime.sendMessage({ action: "open_popup" });
 }
+
+// `ref` mit korrektem Typ initialisieren
+const productHistory = ref();
+
+/* onMounted(() => {
+  console.log('mounted')
+  chrome.storage.local.get("productHistory", (data) => {
+    console.log('DATA')
+    console.log(data.productHistory)
+    productHistory.value = data.productHistory || [];
+    console.log(productHistory.value)
+  });
+}); */
+
+onMounted(() => {
+
+});
+console.log("Component mounted, loading product history...");
+
+chrome.storage.local.get("productHistory", (data) => {
+  console.log("DATA from storage:", data);
+
+  productHistory.value = data?.productHistory
+
+
+  console.log("Updated productHistory:", productHistory.value);
+});
+console.log(productHistory.value)
+
 </script>

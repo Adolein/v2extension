@@ -11,7 +11,7 @@ export default defineConfig({
         matches: ["*://*/*"],
       },
     ],
-    permissions: ['activeTab', 'scripting', 'tabs'],
+    permissions: ['storage','activeTab', 'scripting', 'tabs'],
     background: {
       service_worker: 'background.ts',
     },
