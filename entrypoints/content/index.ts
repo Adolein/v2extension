@@ -162,7 +162,6 @@ function defineProductTable(ctx: ContentScriptContext) {
         onMount(container) {
             const app = createApp(ProductTable);
             app.mount(container);
-            // Produkt-Historie laden, nachdem die Tabelle gerendert wurde
 
             return app;
         },
