@@ -15,6 +15,7 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
+    "chart.js": "^4.4.8",
     "vue": "^3.5.12"
   },
   "devDependencies": {
