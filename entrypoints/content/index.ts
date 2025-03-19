@@ -3,6 +3,8 @@ import App from "./App.vue";
 import { createApp } from "vue";
 import "./reset.css";
 import ProductTable from "@/components/productTable.vue";
+import V1 from "@/components/chart/v1.vue";
+
 
 
 export default defineContentScript({
@@ -21,11 +23,23 @@ export default defineContentScript({
         const ui = await defineProductTable(ctx);
         if (ui) {
             // Mount initially
-            ui.mount();
-
+            ui.mount()
+            
             // Re-mount when page changes
             ctx.addEventListener(window, "wxt:locationchange", (event) => {
                 ui.mount();
+            });
+        }
+
+        //chart
+        const chart = await defineChart(ctx);
+        if (chart) {
+            // Mount initially
+            chart.mount();
+
+            // Re-mount when page changes
+            ctx.addEventListener(window, "wxt:locationchange", (event) => {
+                chart.mount();
             });
         }
 
@@ -161,6 +175,26 @@ function defineProductTable(ctx: ContentScriptContext) {
         anchor: "#ppd",
         onMount(container) {
             const app = createApp(ProductTable);
+            app.mount(container);
+
+            return app;
+        },
+        onRemove(app) {
+            app?.unmount();
+        },
+    });
+}
+
+function defineChart(ctx: ContentScriptContext) {
+    const anchorElement = document.querySelector("#ppd");
+    if (!anchorElement) return;
+    return createShadowRootUi(ctx, {
+        name: "chart-v1",
+        position: "inline",
+        append: "after",
+        anchor: "#ppd",
+        onMount(container) {
+            const app = createApp(V1);
             app.mount(container);
 
             return app;
